@@ -1,0 +1,26 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: darkgrey;
+}
+body h1 {
+  color: whitesmoke;
+  padding: 1rem;
+}
+body p {
+  padding: 1.5rem;
+}
+body h2 {
+  padding: 1rem;
+}
+body img {
+  padding: 1.5rem;
+  max-width: min(50%, 600px);
+}
+body a {
+  padding: 1.5rem;
+}/*# sourceMappingURL=style.css.map */
