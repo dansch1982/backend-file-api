@@ -1,0 +1,11 @@
+{
+    "apple": {
+        "color" : "red"
+    },
+    "pear": {
+        "color" : "green"
+    },
+    "banana": {
+        "color" : "yellow"
+    }
+}

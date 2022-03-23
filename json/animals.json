@@ -1,0 +1,26 @@
+{
+    "cat": {
+        "legs" : 4,
+        "tail" : "yes",
+        "name" : {
+            "surname" : "Katten",
+            "lastname" : "Jansson"
+        }
+    },
+    "dog": {
+        "legs" : 4,
+        "tail" : "yes",
+        "name" : {
+            "surname" : "Hunden",
+            "lastname" : "Pluto"
+        }
+    },
+    "snek": {
+        "legs" : 0,
+        "tail" : "100%",
+        "name" : {
+            "surname" : "I AM",
+            "lastname" : "SNEK"
+        }
+    }
+}
