@@ -74,7 +74,7 @@ function post(req, res, parts) {
         } catch (err) {
             return resolve(res, error({
                 "nobody": "",
-                "error": "nobody"
+                "error": "crashes"
             }), "application/json")
         }
         for (const key in body) {
@@ -84,9 +84,13 @@ function post(req, res, parts) {
             }
         }
         data = JSON.parse(data)
-        const refArray = [data];
-        for (let i = 1; i < parts.length; i++) {
-            refArray.push(refArray[i - 1][parts[i]])
+        const refArray = [];
+        for (let i = 0; i < parts.length; i++) {
+            if (refArray.length === 0) {
+                refArray.push(data)
+            } else {
+                refArray.push(refArray[i - 1][parts[i]])
+            }
         }
         let before, after;
         if (parts.length <= 1) {
