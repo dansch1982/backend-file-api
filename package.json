@@ -8,8 +8,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "mysql2": "^2.3.3"
-  }
+  "license": "ISC"
 }
