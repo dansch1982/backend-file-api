@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const Switcher = require('./switcher')
 
 http.createServer((req, res) => {
     const host = 'http' + '://' + req.headers.host + '/';
@@ -8,16 +9,23 @@ http.createServer((req, res) => {
     console.log(`${req.method}: ${url.pathname}`);
     const parts = url.pathname.split('/').filter(Boolean)
 
-    switch (req.method) {
-        case "GET":
-            get(res, parts);
-            break;
-        case "POST":
-            post(req, res, parts);
-            break;
-        default:
-            resolve(res, error("Something went wrong."), "application/json")
-            break;
+    const switcher = new Switcher()
+
+    switcher.addObjective("GET", ()=> {
+        get(res, parts);
+    })
+    
+    switcher.addObjective("PUT", ()=> {
+        switcher.switch('POST', true)
+    })
+    
+    switcher.addObjective("POST", (...args)=> {
+        const [put] = args
+        postAndPut(req, res, parts, put);
+    })
+
+    if(!switcher.switch(req.method)) {
+        resolve(res, error("Something went wrong."), "application/json")
     }
 
 }).listen(8080);
@@ -27,48 +35,55 @@ function get(res, parts) {
     const file = getFileName(parts);
 
     fs.readFile(file, (err, data) => {
+
         let response;
 
         if (err) {
+
             const files = fs.readdirSync(path.join(__dirname, "json"))
 
             for (let i = 0; i < files.length; i++) {
                 files[i] = path.parse(files[i]).name
             }
-
             response = error(`Available entrypoints: ${files.join(', ')}.`)
 
         } else {
 
-            response = getDeepObject(data, parts)
+            const object = JSON.parse(data)
+            const refArray = getRefArray(object, parts)
+            response = refArray[refArray.length - 1] || error("No such data.")
 
         }
+
         resolve(res, response, "application/json");
     })
 }
 
-function post(req, res, parts) {
+function getRefArray(object, parts) {
+    const refArray = []
+    for (let i = 0; i < parts.length; i++) {
+        if (refArray.length <= 0) {
+            refArray.push(object)
+        } else {
+            refArray.push(refArray[i-1][parts[i]])
+        }
+    }
+    return refArray;
+}
+
+function postAndPut(req, res, parts, put) {
 
     const file = getFileName(parts);
-    let object;
 
     fs.readFile(file, async (err, data) => {
-        let response;
-        if (err) {
-            // create file ?
-            return resolve(res, err, "application/json")
-        } else {
-            object = getDeepObject(data, parts)
-        }
-        if (!object) {
-            // create deep object?
-            return resolve(res, error("Incorrect path"), "application/json")
-        }
+        
         const buffers = [];
         for await (const chunk of req) {
             buffers.push(chunk);
         }
+
         let body;
+
         try {
             body = JSON.parse(Buffer.concat(buffers));
         } catch (err) {
@@ -77,42 +92,40 @@ function post(req, res, parts) {
                 "error": "crashes"
             }), "application/json")
         }
+        
+        if (err) {
+            console.log(body)
+            return resolve(res, err, "application/json")
+        } 
+
+        const object = JSON.parse(data)
+        const refArray = getRefArray(object, parts)
+        
+        if (!refArray[refArray.length - 1]) {
+            return resolve(res, error("Incorrect path"), "application/json")
+        }
+
+
+        
         for (const key in body) {
             const element = body[key];
-            if (!object[key]) {
-                object[key] = element;
-            }
+            compareDeepData(refArray[refArray.length - 1], element, key, put)
         }
-        data = JSON.parse(data)
-        const refArray = [];
-        for (let i = 0; i < parts.length; i++) {
-            if (refArray.length === 0) {
-                refArray.push(data)
-            } else {
-                refArray.push(refArray[i - 1][parts[i]])
-            }
-        }
-        let before, after;
-        if (parts.length <= 1) {
-            before = refArray[0];
-            data = object
-            after = object;
 
-        } else {
-            before = refArray[refArray.length - 2][parts[parts.length - 1]];
-            refArray[refArray.length - 2][parts[parts.length - 1]] = object
-            after = refArray[refArray.length - 2][parts[parts.length - 1]];
-        }
-        if (JSON.stringify(before) === JSON.stringify(object)) {
+        const before = JSON.parse(data)
+        
+        if (JSON.stringify(object) === JSON.stringify(before) && put !== true) {
             resolve(res, error("No data added."), "application/json")
         } else {
-            fs.writeFile(file, JSON.stringify(data), (err) => {
-
+            fs.writeFile(file, JSON.stringify(object), (err) => {
+                
+                let response;
+                
                 if (err) {
                     response = error(err.toString())
                 } else {
                     response = {
-                        "succes": "Data added.",
+                        "succes": "Data saved.",
                         "before": before,
                         "after": object
                     }
@@ -121,7 +134,23 @@ function post(req, res, parts) {
             })
         }
     })
+}
 
+async function getBuffers(req) {
+
+    return buffers
+}
+
+function compareDeepData(object, element, key, bool) {
+    if (typeof element === "object") {
+        for (const deepKey in element) {
+            const deepElement = element[deepKey]
+            compareDeepData(object[key], deepElement, deepKey, bool)
+        }
+    }
+    else if (bool === true || !object[key]) {
+        object[key] = element;
+    }
 }
 
 function resolve(res, data, type) {
@@ -143,29 +172,6 @@ function resolve(res, data, type) {
 function getFileName(parts) {
     const file = path.join(__dirname, "json", (parts[0] ? parts[0] : "") + ".json")
     return file;
-}
-
-function getDeepObject(data, parts) {
-
-    let response;
-    try {
-        response = JSON.parse(data)
-    } catch (error) {
-        response = data
-    }
-
-    if (parts.length - 1) {
-        for (let i = 1; i < parts.length; i++) {
-            const part = parts[i];
-            if (response[part]) {
-                response = response[part]
-            } else {
-                response = null
-                break;
-            }
-        }
-    }
-    return response
 }
 
 function error(message) {
