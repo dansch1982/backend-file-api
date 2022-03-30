@@ -24,6 +24,10 @@ http.createServer((req, res) => {
         postAndPut(req, res, parts, put);
     })
 
+    switcher.addObjective("DELETE", () => {
+        deletePost(req, res, parts)
+    })
+
     if(!switcher.switch(req.method)) {
         resolve(res, error("Something went wrong."), "application/json")
     }
@@ -102,7 +106,7 @@ function postAndPut(req, res, parts, put) {
         
         for (const key in body) {
             const element = body[key];
-            compareDeepData(refArray[refArray.length - 1], element, key, put)
+            addDeepData(refArray[refArray.length - 1], element, key, put)
         }
 
         if (JSON.stringify(refArray[refArray.length - 1]) === JSON.stringify(before) && put !== true) {
@@ -127,14 +131,52 @@ function postAndPut(req, res, parts, put) {
     })
 }
 
-function compareDeepData(object, element, key, bool) {
+function deletePost(req, res, parts) {
+
+    const file = getFileName(parts);
+
+    fs.readFile(file, (err, data) => {
+
+        if (err) {
+
+            return incorrectEntry(res);
+
+        } else {
+
+            const object = JSON.parse(data)
+            const refArray = getRefArray(object, parts)
+            const response = refArray[refArray.length - 1] || error("No such data.")
+            resolve(res, response, "application/json");
+
+        }
+
+    })
+
+}
+
+function addDeepData(object, element, key, bool) {
     if (typeof element === "object") {
         for (const deepKey in element) {
             const deepElement = element[deepKey]
             if (!object[key]) {
                 object[key] = {}
             }
-            compareDeepData(object[key], deepElement, deepKey, bool)
+            addDeepData(object[key], deepElement, deepKey, bool)
+        }
+    }
+    else if (bool === true || !object[key]) {
+        object[key] = element;
+    }
+}
+
+function addDeepData(object, element, key, bool) {
+    if (typeof element === "object") {
+        for (const deepKey in element) {
+            const deepElement = element[deepKey]
+            if (!object[key]) {
+                object[key] = {}
+            }
+            addDeepData(object[key], deepElement, deepKey, bool)
         }
     }
     else if (bool === true || !object[key]) {
