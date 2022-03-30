@@ -9,6 +9,7 @@ class Switcher {
                 this.objectives[name](...args)
                 return true
             } catch (error) {
+                console.log(error)
                 return false
             }
     }
