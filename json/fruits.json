@@ -1,1 +1,1 @@
-{"apple":{"color":"red"},"pear":{"color":"green"},"banana":{"color":"yellow"},"mango":{"color":"orange"}}
+{"apple":"red","pear":{"color":"green"},"banana":{"color":"yellow"},"mango":{"color":"orange"}}
