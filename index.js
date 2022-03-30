@@ -11,15 +11,15 @@ http.createServer((req, res) => {
 
     const switcher = new Switcher()
 
-    switcher.addObjective("GET", ()=> {
+    switcher.addObjective("GET", () => {
         get(res, parts);
     })
     
-    switcher.addObjective("PUT", ()=> {
+    switcher.addObjective("PUT", () => {
         switcher.switch('POST', true)
     })
     
-    switcher.addObjective("POST", (...args)=> {
+    switcher.addObjective("POST", (...args) => {
         const [put] = args
         postAndPut(req, res, parts, put);
     })
@@ -36,26 +36,19 @@ function get(res, parts) {
 
     fs.readFile(file, (err, data) => {
 
-        let response;
-
         if (err) {
 
-            const files = fs.readdirSync(path.join(__dirname, "json"))
-
-            for (let i = 0; i < files.length; i++) {
-                files[i] = path.parse(files[i]).name
-            }
-            response = error(`Available entrypoints: ${files.join(', ')}.`)
+            return incorrectEntry(res);
 
         } else {
 
             const object = JSON.parse(data)
             const refArray = getRefArray(object, parts)
-            response = refArray[refArray.length - 1] || error("No such data.")
+            const response = refArray[refArray.length - 1] || error("No such data.")
+            resolve(res, response, "application/json");
 
         }
 
-        resolve(res, response, "application/json");
     })
 }
 
@@ -95,26 +88,24 @@ function postAndPut(req, res, parts, put) {
         
         if (err) {
             console.log(body)
-            return resolve(res, err, "application/json")
+            return incorrectEntry(res)
         } 
 
         const object = JSON.parse(data)
         const refArray = getRefArray(object, parts)
-        
+
+        const before = JSON.parse(JSON.stringify(refArray[refArray.length - 1]))
+
         if (!refArray[refArray.length - 1]) {
             return resolve(res, error("Incorrect path"), "application/json")
         }
-
-
         
         for (const key in body) {
             const element = body[key];
             compareDeepData(refArray[refArray.length - 1], element, key, put)
         }
 
-        const before = JSON.parse(data)
-        
-        if (JSON.stringify(object) === JSON.stringify(before) && put !== true) {
+        if (JSON.stringify(refArray[refArray.length - 1]) === JSON.stringify(before) && put !== true) {
             resolve(res, error("No data added."), "application/json")
         } else {
             fs.writeFile(file, JSON.stringify(object), (err) => {
@@ -127,7 +118,7 @@ function postAndPut(req, res, parts, put) {
                     response = {
                         "succes": "Data saved.",
                         "before": before,
-                        "after": object
+                        "after": refArray[refArray.length - 1]
                     }
                 }
                 resolve(res, response, "application/json")
@@ -136,15 +127,13 @@ function postAndPut(req, res, parts, put) {
     })
 }
 
-async function getBuffers(req) {
-
-    return buffers
-}
-
 function compareDeepData(object, element, key, bool) {
     if (typeof element === "object") {
         for (const deepKey in element) {
             const deepElement = element[deepKey]
+            if (!object[key]) {
+                object[key] = {}
+            }
             compareDeepData(object[key], deepElement, deepKey, bool)
         }
     }
@@ -172,6 +161,17 @@ function resolve(res, data, type) {
 function getFileName(parts) {
     const file = path.join(__dirname, "json", (parts[0] ? parts[0] : "") + ".json")
     return file;
+}
+
+function incorrectEntry(res) {
+    const files = fs.readdirSync(path.join(__dirname, "json"))
+
+    for (let i = 0; i < files.length; i++) {
+        files[i] = path.parse(files[i]).name
+    }
+    const response = error(`Available entrypoints: ${files.join(', ')}.`)
+
+    resolve(res, response, "application/json");
 }
 
 function error(message) {
