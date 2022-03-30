@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const Switcher = require('./switcher');
+const { type } = require('os');
 
 http.createServer((req, res) => {
     const host = 'http' + '://' + req.headers.host + '/';
@@ -69,7 +70,7 @@ function get(res, parts) {
     })
 }
 
-function postAndPut(req, res, parts, put) {
+function postAndPut(req, res, parts, put = false) {
 
     const file = getFileName(parts);
 
@@ -94,7 +95,7 @@ function postAndPut(req, res, parts, put) {
         }
         const before = JSON.parse(JSON.stringify(refArray[refArray.length - 1]))
         
-        if (typeof body !== "object") {
+        if (typeof body !== "object" || typeof refArray[refArray.length-1] !== "object") {
             refArray[refArray.length-2][parts[parts.length - 1]] = body
         } else {
             for (const key in body) {
@@ -116,7 +117,7 @@ function postAndPut(req, res, parts, put) {
                     response = {
                         "succes": "Data saved.",
                         "before": before,
-                        "after": object[parts[parts.length - 1]]
+                        "after": object[parts[parts.length - 1]] || object
                     }
                 }
                 resolve(res, response, "application/json")
@@ -208,7 +209,7 @@ function addDeepData(object, element, key, bool) {
     if (typeof element === "object") {
         for (const deepKey in element) {
             const deepElement = element[deepKey]
-            if (!object[key] || typeof object[key] !== "object") {
+            if (!object[key] || (typeof object[key] !== "object" && bool)) {
                 object[key] = {}
             }
             addDeepData(object[key], deepElement, deepKey, bool)
