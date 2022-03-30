@@ -37,7 +37,7 @@ http.createServer((req, res) => {
         resolve(res, error("Something went wrong."), "application/json")
     }
 
-}).listen(8080);
+}).listen(process.env.PORT || 8080);
 
 function options(res) {
     res.writeHead(200, {
