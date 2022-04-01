@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const Switcher = require('./switcher');
-const { type } = require('os');
 
 http.createServer((req, res) => {
     const host = 'http' + '://' + req.headers.host + '/';
@@ -42,7 +41,7 @@ http.createServer((req, res) => {
 function options(res) {
     res.writeHead(200, {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, PUT, GET, OPTIONS",
+        "Access-Control-Allow-Methods": "POST, PUT, GET, DELETE, OPTIONS",
         "Content-Type" : "application/json"
     })
     res.end()
