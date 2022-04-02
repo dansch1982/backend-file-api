@@ -1,6 +1,11 @@
 {
     "apple": {
-        "color" : "red"
+        "color": "red",
+        "variants": {
+            "granny smith": {
+                "taste": "tart"
+            }
+        }
     },
     "pear": {
         "color": "green"
