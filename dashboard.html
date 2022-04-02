@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,7 +8,142 @@
     <link rel="stylesheet" href="style/style.css">
     <title>Dashboard</title>
 </head>
+
 <body>
-    
+    <section class="container">
+
+        <section class="options">
+            <button class="get">GET</button>
+            <button class="post">POST</button>
+            <button class="put">PUT</button>
+            <button class="delete">DELETE</button>
+        </section>
+
+        <section class="display">
+            <input class="url" value="http://127.0.0.1:8080/">
+            <article class="structure">Waiting for command<span class="dot">.</span></article>
+            <textarea class="input" placeholder='{&#10;&emsp;"input" : "data"&#10;}'></textarea>
+            <article class="response">Waiting for command<span class="dot">.</span></article>
+        </section>
+    </section>
+    <script>
+        const dotInterval = setInterval(() => {
+            const dots = document.querySelectorAll('.dot')
+            if (dots.length > 0) {
+                dots.forEach(dot => {
+                    dot.textContent = dot.textContent === "..." ? "." : dot.textContent + "."
+                })
+            } else {
+                clearInterval(dotInterval)
+            }
+        }, 500);
+
+        const get = document.querySelector('.get')
+        get.addEventListener('click', async () => {
+            const url = document.querySelector('.url')
+            let data, json
+            try {
+                data = await (await fetch(url.value)).json()
+                json = JSON.stringify(data)
+            } catch (error) {
+                json = error
+            }
+
+            function formatJSON(json) {
+
+                function splitJSON(json) {
+                    const array = splitKeep(json, "{")
+                    const newArray = splitKeep(splitKeep(array, "}"), ",")
+
+                    function splitKeep(element, string) {
+
+                        const exp = `(${string})`
+                        const regexp = new RegExp(exp, "g")
+
+                        if (typeof element === "string") {
+                            return element.split(regexp).filter(Boolean)
+                        } else if (Array.isArray(element)) {
+                            const newArray = []
+                            element.forEach((item, index) => {
+                                if (item.indexOf(string) >= 0) {
+                                    newArray.push(...item.split(regexp).filter(Boolean))
+                                } else {
+                                    newArray.push(item)
+                                }
+                            })
+                            return newArray
+                        } else {
+                            throw "error: Can't split element."
+                        }
+                    }
+
+                    newArray.forEach((item, index) => {
+                        if (item.startsWith(",")) {
+                            newArray[index - 1] += item
+                            newArray[index] = ""
+                        }
+                        if (item.endsWith(":")) {
+                            newArray[index] = item + " " + newArray.splice(index + 1, 1)
+                        }
+                    })
+                    return newArray.filter(Boolean)
+                }
+
+
+                function tabifyJSON(json) {
+                    let array;
+                    try {
+                        array = splitJSON(json)
+                    } catch (error) {
+                        console.log(error)
+                        return json
+                    }
+                    let i = 0;
+                    array.forEach((item, index) => {
+                        if (item.endsWith("{")) {
+                            i++
+                        } else if (item.startsWith("}")) {
+                            i--
+                        }
+                        array[index] =
+                            `<span style="margin-left: ${i - (array[index].endsWith("{")  ? 1 : 0)}rem">` +
+                            array[index] + "</span>"
+                    })
+
+                    return array.join('<br>')
+                }
+
+                return tabifyJSON(json)
+
+            }
+
+            const html = formatJSON(json)
+
+            const response = document.querySelector('.response')
+            const structure = document.querySelector('.structure')
+            if (!data || data.error) {
+                updateTerminal(response, html)
+            } else {
+                updateTerminal(structure, html)
+                updateTerminal(response, "Success!")
+            }
+        })
+
+        const url = document.querySelector('.url')
+        url.addEventListener('keydown', () => {
+            if (event.key.toLowerCase() === "enter") {
+                get.click()
+            }
+        })
+
+        function updateTerminal(terminal, html) {
+            terminal.innerHTML = html
+            terminal.classList.toggle('textBlack')
+            setTimeout(() => {
+                terminal.classList.toggle('textBlack')
+            }, 200);
+        }
+    </script>
 </body>
+
 </html>
