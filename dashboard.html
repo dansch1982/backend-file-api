@@ -21,7 +21,7 @@
         </section>
 
         <section class="display">
-            <input class="url" value="http://127.0.0.1:8080/fruits">
+            <input class="url" value="http://127.0.0.1:8080/">
             <article class="structure">Waiting for command<span class="dot">.</span></article>
             <textarea class="input" placeholder='{&#10;&emsp;"input" : "data"&#10;}'></textarea>
             <article class="response">Waiting for command<span class="dot">.</span></article>
@@ -53,13 +53,20 @@
 
         async function getJSON(url) {
             let json
+            const log = {}
             try {
-                json = await (await fetch(url)).json()
-            } catch (error) {
-                json = error
+                const data = await fetch(url)
+                log.status = data.status
+                log.statusText = data.statusText
+                log.headers = [...data.headers]
+                console.log(data)
+                console.log(log)
+                json = await data.json()
+            } catch (err) {
+                log.error = err.toString()
             }
             document.querySelector('.url').value = url
-            renderResponse(json)
+            renderResponse(json, log)
         }
 
         function formatJSON(json) {
@@ -79,13 +86,13 @@
                     } else if (item.startsWith("}") || item.startsWith("]")) {
                         i--
                     } 
-                    /* if (item.startsWith('"')) {
+                    if (item.startsWith('"')) {
                         const items = array[index].split(":")
                         //console.log(url.value, "/", items[0].slice(1, -1))
                         itemURL = url.value + "/" + items[0].slice(1, -1)
                         items[0] = `<a href="#" onclick="getJSON('${itemURL}')">${items[0]}</a>`
                         array[index] = items.join(":")
-                    } */
+                    }
                     array[index] =
                         `<span style="margin-left: ${i - (array[index].endsWith("{") || array[index].endsWith("[")  ? 1 : 0)}rem">` +
                         array[index] + "</span>"
@@ -137,16 +144,16 @@
 
         }
 
-        function renderResponse(json) {
+        function renderResponse(json, log) {
             const html = formatJSON(JSON.stringify(json))
 
             const response = document.querySelector('.response')
             const structure = document.querySelector('.structure')
-            if (!json || json.error) {
+            if (!json || log.error) {
                 updateTerminal(response, html)
             } else {
                 updateTerminal(structure, html)
-                updateTerminal(response, "Success!")
+                updateTerminal(response, `${log.status} ${log.statusText}`)
             }
 
             function updateTerminal(terminal, html) {
