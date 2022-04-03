@@ -129,6 +129,6 @@ body .container .display .response {
 }
 
 .textBlack {
-  transition: 0s;
-  color: black;
+  transition: 0s !important;
+  color: black !important;
 }/*# sourceMappingURL=style.css.map */
