@@ -8,7 +8,7 @@ http.createServer((req, res) => {
     console.log(`${req.method}: ${url.pathname}`);
     const parts = url.pathname.split('/').filter(Boolean)
     
-    const switcher = require('./services/switcher');
+    const switcher = require('./services/Switcher');
 
     switcher.addObjective("OPTIONS", () => {
         const options = require('./controllers/options')
