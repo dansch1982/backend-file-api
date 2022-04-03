@@ -20,7 +20,7 @@
         </section>
 
         <section class="display">
-            <input class="url" value="http://127.0.0.1:8080/">
+            <input class="url" value="http://127.0.0.1:8080/fruits">
             <article class="structure">Waiting for command<span class="dot">.</span></article>
             <textarea class="input" placeholder='{&#10;&emsp;"input" : "data"&#10;}'></textarea>
             <article class="response">Waiting for command<span class="dot">.</span></article>
@@ -51,45 +51,6 @@
 
             function formatJSON(json) {
 
-                function splitJSON(json) {
-                    const array = splitKeep(json, "{")
-                    const newArray = splitKeep(splitKeep(array, "}"), ",")
-
-                    function splitKeep(element, string) {
-
-                        const exp = `(${string})`
-                        const regexp = new RegExp(exp, "g")
-
-                        if (typeof element === "string") {
-                            return element.split(regexp).filter(Boolean)
-                        } else if (Array.isArray(element)) {
-                            const newArray = []
-                            element.forEach((item, index) => {
-                                if (item.indexOf(string) >= 0) {
-                                    newArray.push(...item.split(regexp).filter(Boolean))
-                                } else {
-                                    newArray.push(item)
-                                }
-                            })
-                            return newArray
-                        } else {
-                            throw "error: Can't split element."
-                        }
-                    }
-
-                    newArray.forEach((item, index) => {
-                        if (item.startsWith(",")) {
-                            newArray[index - 1] += item
-                            newArray[index] = ""
-                        }
-                        if (item.endsWith(":")) {
-                            newArray[index] = item + " " + newArray.splice(index + 1, 1)
-                        }
-                    })
-                    return newArray.filter(Boolean)
-                }
-
-
                 function tabifyJSON(json) {
                     let array;
                     try {
@@ -100,17 +61,57 @@
                     }
                     let i = 0;
                     array.forEach((item, index) => {
-                        if (item.endsWith("{")) {
+                        if (item.endsWith("{") || item.endsWith("[")) {
                             i++
-                        } else if (item.startsWith("}")) {
+                        } else if (item.startsWith("}") || item.startsWith("]")) {
                             i--
                         }
                         array[index] =
-                            `<span style="margin-left: ${i - (array[index].endsWith("{")  ? 1 : 0)}rem">` +
+                            `<span style="margin-left: ${i - (array[index].endsWith("{") || array[index].endsWith("[")  ? 1 : 0)}rem">` +
                             array[index] + "</span>"
                     })
 
                     return array.join('<br>')
+                }
+
+                function splitJSON(json) {
+                    const array = splitKeep(json, "{", "}", ",")
+
+                    function splitKeep(element, ...string) {
+                        let newArray;
+                        for (let i = 0; i < string.length; i++) {
+                            const exp = `(${string[i]})`
+                            const regexp = new RegExp(exp, "g")
+                            if (typeof element === "string") {
+                                newArray = element.split(regexp).filter(Boolean)
+                            } else if (Array.isArray(element)) {
+                                newArray = []
+                                element.forEach((item, index) => {
+                                    if (item.indexOf(string[i]) >= 0) {
+                                        newArray.push(...item.split(regexp).filter(Boolean))
+                                    } else {
+                                        newArray.push(item)
+                                    }
+                                })
+                            } else {
+                                throw "error: Can't split element."
+                            }
+                            element = newArray;
+                        }
+                        console.log(newArray)
+                        return newArray
+                    }
+
+                    array.forEach((item, index) => {
+                        if (item.startsWith(",")) {
+                            array[index - 1] += item
+                            array[index] = ""
+                        }
+                        if (item.endsWith(":")) {
+                            array[index] = item + " " + array.splice(index + 1, 1)
+                        }
+                    })
+                    return array.filter(Boolean)
                 }
 
                 return tabifyJSON(json)
