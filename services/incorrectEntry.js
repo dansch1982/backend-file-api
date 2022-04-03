@@ -1,8 +1,7 @@
 const fs = require('fs')
 const path = require('path')
-const error = require('../services/error')
-const resolve = require('../services/resolve')
 
+const Response = require('../services/Response')
 
 function incorrectEntry(res) {
     const files = fs.readdirSync(path.join(__dirname, "/../json"))
@@ -10,8 +9,8 @@ function incorrectEntry(res) {
     for (let i = 0; i < files.length; i++) {
         files[i] = path.parse(files[i]).name
     }
-    const response = error(`Available entry points: ${files.join(', ')}.`)
 
-    resolve(res, response, "application/json");
+    res = new Response(res)
+    res.status(404).json({"entrypoints" : files})
 }
 module.exports = incorrectEntry
