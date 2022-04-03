@@ -14,4 +14,4 @@ class Switcher {
             }
     }
 }
-module.exports = Switcher;
+module.exports = new Switcher();

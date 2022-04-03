@@ -6,7 +6,7 @@
 }
 
 body {
-  background-color: darkslategrey;
+  background-color: #2f4f4f;
 }
 body .container {
   margin: auto;
@@ -103,6 +103,10 @@ body .container .display .terminal::placeholder, body .container .display > :nth
 }
 body .container .display .terminal span, body .container .display > :nth-child(1n) span {
   white-space: nowrap;
+}
+body .container .display .terminal a, body .container .display > :nth-child(1n) a {
+  color: #00FF00;
+  text-decoration: none;
 }
 body .container .display .url {
   border: none;
