@@ -88,24 +88,27 @@ body .container .display .terminal, body .container .display > :nth-child(1n) {
   background-color: black;
   padding: 1rem;
   color: #00FF00;
-  transition: 0.5s;
   resize: none;
   outline: none;
+  transition: 0.5s;
+}
+body .container .display .terminal *, body .container .display > :nth-child(1n) * {
+  transition: 0.5s;
+  color: #00FF00;
 }
 body .container .display .terminal::-moz-placeholder, body .container .display > :nth-child(1n)::-moz-placeholder {
-  color: darkslategray;
+  color: rgba(0, 255, 0, 0.25);
 }
 body .container .display .terminal:-ms-input-placeholder, body .container .display > :nth-child(1n):-ms-input-placeholder {
-  color: darkslategray;
+  color: rgba(0, 255, 0, 0.25);
 }
 body .container .display .terminal::placeholder, body .container .display > :nth-child(1n)::placeholder {
-  color: darkslategray;
+  color: rgba(0, 255, 0, 0.25);
 }
 body .container .display .terminal span, body .container .display > :nth-child(1n) span {
   white-space: nowrap;
 }
 body .container .display .terminal a, body .container .display > :nth-child(1n) a {
-  color: #00FF00;
   text-decoration: none;
 }
 body .container .display .url {
@@ -129,6 +132,10 @@ body .container .display .response {
 }
 
 .textBlack {
+  transition: 0s !important;
+  color: black !important;
+}
+.textBlack * {
   transition: 0s !important;
   color: black !important;
 }/*# sourceMappingURL=style.css.map */
