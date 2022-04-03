@@ -87,7 +87,7 @@ body .container .display .terminal, body .container .display > :nth-child(1n) {
   overflow: auto;
   background-color: black;
   padding: 1rem;
-  color: #03A062;
+  color: #00FF00;
   transition: 0.5s;
   resize: none;
   outline: none;
@@ -107,6 +107,7 @@ body .container .display .terminal span, body .container .display > :nth-child(1
 body .container .display .url {
   border: none;
   background-color: whitesmoke;
+  color: black;
   padding: 0.5rem 1rem;
   outline: none;
   grid-area: 1/1/1/-1;
