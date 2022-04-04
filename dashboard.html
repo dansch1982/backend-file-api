@@ -21,7 +21,7 @@
         </section>
 
         <section class="display">
-            <input class="url" value="http://127.0.0.1:8080/">
+            <input class="url" value="http://127.0.0.1:8080/fruits/test">
             <article class="structure">Waiting for command<span class="dot">.</span></article>
             <textarea class="input" placeholder='{&#10;&emsp;"input" : "data"&#10;}'></textarea>
             <article class="response">Waiting for command<span class="dot">.</span></article>
@@ -145,19 +145,15 @@
         }
 
         function renderResponse(json, log) {
-            const html = formatJSON(JSON.stringify(json))
+            const text = formatJSON(JSON.stringify(json))
 
             const response = document.querySelector('.response')
             const structure = document.querySelector('.structure')
-            if (!json || log.error) {
-                updateTerminal(response, html)
-            } else {
-                updateTerminal(structure, html)
-                updateTerminal(response, `${log.status} ${log.statusText}`)
-            }
+            updateTerminal(structure, text)
+            updateTerminal(response, `${log.status} ${log.statusText}`)
 
-            function updateTerminal(terminal, html) {
-            terminal.innerHTML = html
+            function updateTerminal(terminal, text) {
+            terminal.innerHTML = text
             terminal.classList.toggle('textBlack')
             setTimeout(() => {
                 terminal.classList.toggle('textBlack')
