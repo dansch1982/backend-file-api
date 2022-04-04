@@ -16,10 +16,15 @@ class Response {
         this.#message = string
         return this
     }
-    json(data) {
+    json(json) {
         this.addHeader('Content-Type', 'application/json')
         this.configRes()
-        this.res.end(JSON.stringify(data))
+        this.res.end(JSON.stringify(json))
+    }
+    text(text) {
+        this.addHeader('Content-Type', 'text/plain')
+        this.configRes()
+        this.res.end(text)
     }
     configRes() {
         this.res.statusCode =  this.#status
