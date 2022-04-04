@@ -1,6 +1,7 @@
 const http = require('http');
 
-const resolve = require('./services/resolve')
+const Response = require('./services/Response')
+const switcher = require('./services/Switcher');
 
 http.createServer((req, res) => {
     const host = 'http' + '://' + req.headers.host + '/';
@@ -8,7 +9,7 @@ http.createServer((req, res) => {
     console.log(`${req.method}: ${url.pathname}`);
     const parts = url.pathname.split('/').filter(Boolean)
     
-    const switcher = require('./services/Switcher');
+    res = new Response(res)
 
     switcher.addObjective("OPTIONS", () => {
         const options = require('./controllers/options')
@@ -36,7 +37,7 @@ http.createServer((req, res) => {
     })
 
     if(!switcher.switch(req.method)) {
-        resolve(res, error("Something went wrong."), "application/json")
+        res.status(405).json("something went wrong")
     }
 
 }).listen(process.env.PORT || 8080);
