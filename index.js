@@ -1,7 +1,8 @@
 const http = require('http');
+const path = require('path')
 
-const Response = require('./services/Response')
-const Switcher = require('./services/Switcher');
+const Response = require(path.join(__dirname, 'services', 'Response.js'))
+const Switcher = require(path.join(__dirname, 'services', 'Switcher.js'))
 
 http.createServer((req, res) => {
     res = new Response(res)
