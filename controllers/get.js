@@ -8,9 +8,9 @@ function get(res, parts) {
 
     const file = getFileName(parts);
 
-    fs.readFile(file, (err, data) => {
+    fs.readFile(file, (error, data) => {
 
-        if (err) {
+        if (error) {
 
             return incorrectEntry(res);
 

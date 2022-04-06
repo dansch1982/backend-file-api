@@ -1,4 +1,5 @@
 const http = require('http');
+const path = require('path')
 
 const Response = require('./services/response')
 const Switcher = require('./services/switcher');
@@ -17,7 +18,14 @@ http.createServer((req, res) => {
     if (url().code) {
         return res.status(500).text()
     }
-    console.log(`${req.method}: ${url().pathname}`);
+    const pathname = path.parse(path.join(__dirname, url().pathname))
+    console.log(`${req.method}: ${pathname.base}`);
+
+    if (pathname.ext) {
+        console.log(path.join(__dirname, url().pathname))
+        return res.file(path.join(__dirname, url().pathname))
+    }
+
     const parts = url().pathname.split('/').filter(Boolean)
 
     res.setHeader('Access-Control-Allow-Origin', '*')

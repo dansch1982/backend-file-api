@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 class Response {
     #headers = []
     #status = 200
@@ -18,17 +20,28 @@ class Response {
     }
     json(json) {
         this.setHeader('Content-Type', 'application/json')
-        this.configRes()
-        this.res.end(JSON.stringify(json || {"error":"Something went wrong."}))
+        this.end(JSON.stringify(json || {"error":"Something went wrong."}))
     }
     text(text) {
         this.setHeader('Content-Type', 'text/plain')
-        this.configRes()
-        this.res.end(text || 'Something went wrong.')
+        this.end(text || 'Something went wrong.')
     }
-    end() {
+    html(html) {
+        this.setHeader('Content-Type', 'text/html')
+        this.end(html || 'Something went wrong.')
+    }
+    file(file) {
+        fs.readFile(file, (error, data) => {
+            if (error) {
+                this.status(500).text(error.toString())
+            } else {
+                this.status(200).end(data)
+            }
+        })
+    }
+    end(data) {
         this.configRes()
-        this.res.end()
+        this.res.end(data)
     }
     configRes() {
         this.#headers.forEach(head => {
