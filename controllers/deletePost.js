@@ -10,8 +10,7 @@ function deletePost(res, parts) {
 
     if (parts.length <= 0) {
         return incorrectEntry(res)
-    }
-    else if (parts.length <= 1) {
+    } else if (parts.length <= 1) {
         return res.status(403).text("Can't delete an entry point.")
     }
 
@@ -29,12 +28,9 @@ function deletePost(res, parts) {
                 return res.status(404).text("No data.")
             }
 
-            delete refArray[refArray.length-2][parts[parts.length-1]]
+            delete refArray[refArray.length - 2][parts[parts.length - 1]]
 
             fs.writeFile(file, JSON.stringify(object), (error) => {
-                
-                let response;
-                
                 if (error) {
                     res.status(500).text(error.toString())
                 } else {
