@@ -26,7 +26,6 @@ function deletePost(res, parts) {
             const object = JSON.parse(data)
             const refArray = getRefArray(object, parts)
             if (!refArray[refArray.length - 1]) {
-                //return resolve(res, error("No such data."), "application/json");
                 return res.status(404).text("No data.")
             }
 
