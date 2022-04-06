@@ -2,8 +2,6 @@ const fs = require('fs')
 
 const getFileName = require('../services/getFileName')
 const incorrectEntry = require('../services/incorrectEntry')
-const resolve = require('../services/resolve')
-const error = require('../services/error')
 const getRefArray = require('../services/getRefArray')
 
 function deletePost(res, parts) {
@@ -14,36 +12,35 @@ function deletePost(res, parts) {
         return incorrectEntry(res)
     }
     else if (parts.length <= 1) {
-        return resolve(res, error("Can't delete an entry point."), "application/json")
+        return res.status(403).text("Can't delete an entry point.")
     }
 
-    fs.readFile(file, (err, data) => {
+    fs.readFile(file, (error, data) => {
 
-        if (err) {
+        if (error) {
 
-            return resolve(res, error(err), "application/json")
+            return res.status(500).text(error.toString())
 
         } else {
 
             const object = JSON.parse(data)
             const refArray = getRefArray(object, parts)
             if (!refArray[refArray.length - 1]) {
-                return resolve(res, error("No such data."), "application/json");
+                //return resolve(res, error("No such data."), "application/json");
+                return res.status(404).text("No data.")
             }
+
             delete refArray[refArray.length-2][parts[parts.length-1]]
 
-            fs.writeFile(file, JSON.stringify(object), (err) => {
+            fs.writeFile(file, JSON.stringify(object), (error) => {
                 
                 let response;
                 
-                if (err) {
-                    response = error(err.toString())
+                if (error) {
+                    res.status(500).text(error.toString())
                 } else {
-                    response = {
-                        "succes": "Data removed."
-                    }
+                    res.status(200).text("Data removed.")
                 }
-                resolve(res, response, "application/json")
             })
 
         }

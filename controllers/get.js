@@ -21,11 +21,8 @@ function get(res, parts) {
             if (refArray[refArray.length - 1]) {
                 res.status(200).json(refArray[refArray.length - 1])
             } else {
-                res.status(404).json("no data")
+                res.status(404).text("No data.")
             }
-
-
-
         }
 
     })

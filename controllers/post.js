@@ -2,33 +2,30 @@ const fs = require('fs')
 
 const getFileName = require('../services/getFileName')
 const getBody = require('../services/getBody')
-const resolve = require('../services/resolve')
-const error = require('../services/error')
 const incorrectEntry = require('../services/incorrectEntry')
 const getRefArray = require('../services/getRefArray')
 const addDeepData = require('../services/addDeepData')
 
-function postAndPut(req, res, parts, put = false) {
+function post(req, res, parts, put = false) {
 
     const file = getFileName(parts);
 
     fs.readFile(file, async (err, data) => {
 
-        const body = await getBody(req);
-
-        if (!body) {
-            return resolve(res, error("Not a valid JSON data."), "application/json")
-        }
-        
         if (err) {
             return incorrectEntry(res)
         } 
 
+        const body = await getBody(req);
+        if (!body) {
+            return res.status(400).text('Incorrect JSON format.')
+        }
+        
         const object = JSON.parse(data)
         const refArray = getRefArray(object, parts)
 
         if (!refArray[refArray.length - 1]) {
-            return resolve(res, error("Incorrect path"), "application/json")
+            return res.status(400).text("Incorrect path.")
         }
         const before = JSON.parse(JSON.stringify(refArray[refArray.length - 1]))
         
@@ -42,24 +39,23 @@ function postAndPut(req, res, parts, put = false) {
         }
 
         if (JSON.stringify(refArray[refArray.length - 1]) === JSON.stringify(before) && put !== true) {
-            resolve(res, error("No data added."), "application/json")
+            res.status(304).text("No data changed.")
         } else {
-            fs.writeFile(file, JSON.stringify(object), (err) => {
+            fs.writeFile(file, JSON.stringify(object), (error) => {
                 
                 let response;
                 
-                if (err) {
-                    response = error(err.toString())
+                if (error) {
+                    res.status(500).text(error.toString())
                 } else {
                     response = {
-                        "succes": "Data saved.",
                         "before": before,
                         "after": object[parts[parts.length - 1]] || object
                     }
+                    res.status(200).json(response)
                 }
-                resolve(res, response, "application/json")
             })
         }
     })
 }
-module.exports = postAndPut
+module.exports = post

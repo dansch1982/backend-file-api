@@ -8,6 +8,11 @@ function incorrectEntry(res) {
         files[i] = path.parse(files[i]).name
     }
 
-    res.status(404).json({"entrypoints" : files})
+    /* const entrypoints = {}
+    files.forEach(file => {
+        entrypoints[file] = "description"
+    }) */
+
+    res.status(200).text(`Incorrect entry point. Available entry points: ${files.join(', ')}.`)
 }
 module.exports = incorrectEntry

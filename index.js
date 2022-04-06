@@ -1,43 +1,54 @@
 const http = require('http');
 
 const Response = require('./services/Response')
-const switcher = require('./services/Switcher');
+const Switcher = require('./services/Switcher');
 
 http.createServer((req, res) => {
-    const host = 'http' + '://' + req.headers.host + '/';
-    const url = new URL(req.url, host);
-    console.log(`${req.method}: ${url.pathname}`);
-    const parts = url.pathname.split('/').filter(Boolean)
-    
     res = new Response(res)
+    
+    const host = 'http' + '://' + req.headers.host + '/';
+    const url = () => {
+        try {
+            return new URL(req.url, host)
+        } catch (error) {
+            return error
+        }
+    };
+    if (url().code) {
+        return res.status(500).text()
+    }
+    console.log(`${req.method}: ${url().pathname}`);
+    const parts = url().pathname.split('/').filter(Boolean)
 
-    switcher.addObjective("OPTIONS", () => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+
+    Switcher.addObjective("OPTIONS", () => {
         const options = require('./controllers/options')
         options(res)
     })
 
-    switcher.addObjective("GET", () => {
+    Switcher.addObjective("GET", () => {
         const get = require('./controllers/get')
         get(res, parts);
     })
     
-    switcher.addObjective("PUT", () => {
-        switcher.switch('POST', true)
+    Switcher.addObjective("PUT", () => {
+        Switcher.switch('POST', true)
     })
     
-    switcher.addObjective("POST", (...args) => {
+    Switcher.addObjective("POST", (...args) => {
         const [put] = args
-        const postAndPut = require('./controllers/postAndPut')
-        postAndPut(req, res, parts, put);
+        const post = require('./controllers/post')
+        post(req, res, parts, put);
     })
 
-    switcher.addObjective("DELETE", () => {
+    Switcher.addObjective("DELETE", () => {
         const deletePost = require('./controllers/deletePost')
         deletePost(res, parts)
     })
 
-    if(!switcher.switch(req.method)) {
-        res.status(405).json("something went wrong")
+    if(!Switcher.switch(req.method)) {
+        res.status(405).text()
     }
 
 }).listen(process.env.PORT || 8080);

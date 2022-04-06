@@ -17,11 +17,11 @@
             <button class="post">POST</button>
             <button class="put">PUT</button>
             <button class="delete">DELETE</button>
-            
+
         </section>
 
         <section class="display">
-            <input class="url" value="http://127.0.0.1:8080/fruits/test">
+            <input class="url" value="http://127.0.0.1:8080/fruits/">
             <article class="structure">Waiting for command<span class="dot">.</span></article>
             <textarea class="input" placeholder='{&#10;&emsp;"input" : "data"&#10;}'></textarea>
             <article class="response">Waiting for command<span class="dot">.</span></article>
@@ -39,9 +39,42 @@
             }
         }, 500);
 
+        const put = document.querySelector('.put')
+        put.addEventListener('click', () => {
+
+            body = input.value
+            const options = {
+                method: 'PUT',
+                body: body
+            }
+            getJSON(url.value, options)
+        })
+
+        const post = document.querySelector('.post')
+        post.addEventListener('click', () => {
+
+            body = input.value
+            const options = {
+                method: 'POST',
+                body: body
+            }
+            getJSON(url.value, options)
+        })
+
+        const deletePost = document.querySelector('.delete')
+        deletePost.addEventListener('click', () => {
+            const options = {
+                method: 'DELETE'
+            }
+            getJSON(url.value, options)
+        })
+
         const get = document.querySelector('.get')
         get.addEventListener('click', () => {
-            getJSON(url.value)
+            const options = {
+                method: 'GET'
+            }
+            getJSON(url.value, options)
         })
 
         const url = document.querySelector('.url')
@@ -51,22 +84,44 @@
             }
         })
 
-        async function getJSON(url) {
-            let json
-            const log = {}
-            try {
-                const data = await fetch(url)
-                log.status = data.status
-                log.statusText = data.statusText
-                log.headers = [...data.headers]
-                console.log(data)
-                console.log(log)
-                json = await data.json()
-            } catch (err) {
-                log.error = err.toString()
+        async function getJSON(url, options) {
+            const item = '//'
+            const index = url.indexOf(item)
+            url = url.substring(0, index + item.length) + recursiveReplace(url.slice(index + item.length), item,
+                '/')
+
+            function recursiveReplace(string, item, replace) {
+                if (string.indexOf(item) >= 0) {
+                    return recursiveReplace(string.replaceAll(item, replace), item, replace)
+                } else {
+                    return string
+                }
             }
-            document.querySelector('.url').value = url
-            renderResponse(json, log)
+            let data;
+            try {
+                data = await fetch(url, options)
+            } catch (error) {
+                return updateTerminal(response, `<span>${error}</span>`)
+            }
+
+            const log = {
+                status: data.status,
+                statusText: data.statusText,
+                headers: [...data.headers]
+            }
+
+            const text = async () => {
+                if (log.headers.some(header => {
+                        return header.includes('content-type') && header.includes('application/json')
+                    })) {
+                    return formatJSON(JSON.stringify(await data.json()))
+                } else {
+                    return await data.text()
+                }
+            }
+
+            document.querySelector('.url').value = url.endsWith('/') ? url : url + "/"
+            renderResponse(await text(), log)
         }
 
         function formatJSON(json) {
@@ -79,13 +134,14 @@
                     console.log(error)
                     return json
                 }
-                let i = 0, prev = []
+                let i = 0,
+                    prev = []
                 array.forEach((item, index) => {
                     if (item.endsWith("{") || item.endsWith("[")) {
                         i++
                     } else if (item.startsWith("}") || item.startsWith("]")) {
                         i--
-                    } 
+                    }
                     if (item.startsWith('"')) {
                         const items = array[index].split(":")
                         //console.log(url.value, "/", items[0].slice(1, -1))
@@ -144,21 +200,27 @@
 
         }
 
-        function renderResponse(json, log) {
-            const text = formatJSON(JSON.stringify(json))
+        const response = document.querySelector('.response')
+        const input = document.querySelector('.input')
+        const structure = document.querySelector('.structure')
 
-            const response = document.querySelector('.response')
-            const structure = document.querySelector('.structure')
-            updateTerminal(structure, text)
-            updateTerminal(response, `${log.status} ${log.statusText}`)
+        function renderResponse(text, log) {
+            if (text)  {
+                updateTerminal(structure, text)
+            }
+            if (log) {
+                updateTerminal(response,
+                    `<span>${log.status} ${log.statusText}</span><br><span>${log.headers.join('<br>').replace(/,/g, " : ")}</span>`
+                )
+            }
+        }
 
-            function updateTerminal(terminal, text) {
+        function updateTerminal(terminal, text) {
             terminal.innerHTML = text
             terminal.classList.toggle('textBlack')
             setTimeout(() => {
                 terminal.classList.toggle('textBlack')
             }, 200);
-        }
         }
     </script>
 </body>

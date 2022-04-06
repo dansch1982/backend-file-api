@@ -1,34 +1,36 @@
 class Response {
-    #headers = [['Access-Control-Allow-Origin', '*']]
+    #headers = []
     #status = 200
     #message = ""
     constructor(res) {
         this.res = res
     }
-    addHeader(key, value) {
+    setHeader(key, value) {
         this.#headers.push([key, value])
     }
     status(code) {
-        this.#status = code
+        this.res.statusCode = code || this.#status
         return this
     }
-    message(string) {
-        this.#message = string
+    message(message) {
+        this.res.statusMessage = message || this.#message
         return this
     }
     json(json) {
-        this.addHeader('Content-Type', 'application/json')
+        this.setHeader('Content-Type', 'application/json')
         this.configRes()
-        this.res.end(JSON.stringify(json))
+        this.res.end(JSON.stringify(json || {"error":"Something went wrong."}))
     }
     text(text) {
-        this.addHeader('Content-Type', 'text/plain')
+        this.setHeader('Content-Type', 'text/plain')
         this.configRes()
-        this.res.end(text)
+        this.res.end(text || 'Something went wrong.')
+    }
+    end() {
+        this.configRes()
+        this.res.end()
     }
     configRes() {
-        this.res.statusCode =  this.#status
-        this.res.statusMessage = this.#message
         this.#headers.forEach(head => {
             const [key, value] = [...head]
             this.res.setHeader(key, value)

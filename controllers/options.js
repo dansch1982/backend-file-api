@@ -1,10 +1,7 @@
 function options(res) {
-    res.writeHead(200, {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, PUT, GET, DELETE, OPTIONS",
-        "Content-Type" : "application/json"
-    })
-    res.end()
+    res.setHeader('Access-Control-Allow-Methods', 'POST, PUT, GET, DELETE, OPTIONS')
+    res.setHeader('Content-Type', 'application/json')
+    res.status(200).end()
 }
 
 module.exports = options
