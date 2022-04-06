@@ -33,24 +33,24 @@ function post(req, res, parts, put = false) {
             refArray[refArray.length-2][parts[parts.length - 1]] = body
         } else {
             for (const key in body) {
-                    const element = body[key];
-                    addDeepData(refArray[refArray.length - 1], element, key, put)
+                const element = body[key];
+                addDeepData(refArray[refArray.length - 1], element, key, put)
             }
         }
-
+        
         if (JSON.stringify(refArray[refArray.length - 1]) === JSON.stringify(before) && put !== true) {
             res.status(304).text("No data changed.")
         } else {
             fs.writeFile(file, JSON.stringify(object), (error) => {
                 
-                let response;
-                
                 if (error) {
                     res.status(500).text(error.toString())
                 } else {
-                    response = {
-                        "before": before,
-                        "after": object[parts[parts.length - 1]] || object
+                    const response = { "before": before }
+                    try {
+                        response["after"] = refArray[refArray.length-2][parts[parts.length - 1]]
+                    } catch (error) {
+                        response["after"] = object
                     }
                     res.status(200).json(response)
                 }

@@ -18,7 +18,9 @@ http.createServer((req, res) => {
     if (url().code) {
         return res.status(500).text()
     }
+
     const pathname = path.parse(path.join(__dirname, url().pathname))
+    
     console.log(`${req.method}: ${pathname.base}`);
 
     if (pathname.ext) {

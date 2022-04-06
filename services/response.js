@@ -33,7 +33,7 @@ class Response {
     file(file) {
         fs.readFile(file, (error, data) => {
             if (error) {
-                this.status(500).text(error.toString())
+                this.status(404).text(error.toString())
             } else {
                 this.status(200).end(data)
             }
