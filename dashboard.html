@@ -142,13 +142,13 @@
                     } else if (item.startsWith("}") || item.startsWith("]")) {
                         i--
                     }
-                    if (item.startsWith('"')) {
+                    /* if (item.startsWith('"')) {
                         const items = array[index].split(":")
                         //console.log(url.value, "/", items[0].slice(1, -1))
                         itemURL = url.value + "/" + items[0].slice(1, -1)
                         items[0] = `<a href="#" onclick="getJSON('${itemURL}')">${items[0]}</a>`
                         array[index] = items.join(":")
-                    }
+                    } */
                     array[index] =
                         `<span style="margin-left: ${i - (array[index].endsWith("{") || array[index].endsWith("[")  ? 1 : 0)}rem">` +
                         array[index] + "</span>"

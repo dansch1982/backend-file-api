@@ -30,7 +30,11 @@ function post(req, res, parts, put = false) {
         const before = JSON.parse(JSON.stringify(refArray[refArray.length - 1]))
         
         if (typeof body !== "object" || typeof refArray[refArray.length-1] !== "object") {
-            refArray[refArray.length-2][parts[parts.length - 1]] = body
+            try {
+                refArray[refArray.length-2][parts[parts.length - 1]] = body
+            } catch (error) {
+                return res.status(500).text()
+            }
         } else {
             for (const key in body) {
                 const element = body[key];
