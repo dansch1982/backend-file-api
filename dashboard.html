@@ -21,13 +21,19 @@
         </section>
 
         <section class="display">
-            <input class="url" value="http://127.0.0.1:8080/">
+            <input class="url">
             <article class="structure">Waiting for command<span class="dot">.</span></article>
             <textarea class="input" placeholder='{&#10;&emsp;"input" : "data"&#10;}'></textarea>
             <article class="response">Waiting for command<span class="dot">.</span></article>
         </section>
     </section>
     <script>
+
+
+        window.addEventListener('DOMContentLoaded', () => {
+            url.value = window.location.href.replace(window.location.pathname, '/')
+        })
+
         const dotInterval = setInterval(() => {
             const dots = document.querySelectorAll('.dot')
             if (dots.length > 0) {
@@ -38,6 +44,10 @@
                 clearInterval(dotInterval)
             }
         }, 500);
+
+        const response = document.querySelector('.response')
+        const input = document.querySelector('.input')
+        const structure = document.querySelector('.structure')
 
         const put = document.querySelector('.put')
         put.addEventListener('click', () => {
@@ -199,10 +209,6 @@
             return tabifyJSON(json)
 
         }
-
-        const response = document.querySelector('.response')
-        const input = document.querySelector('.input')
-        const structure = document.querySelector('.structure')
 
         function renderResponse(text, log) {
             if (text)  {
