@@ -33,7 +33,7 @@ function post(req, res, parts, put = false) {
             try {
                 refArray[refArray.length-2][parts[parts.length - 1]] = body
             } catch (error) {
-                return res.status(500).text()
+                return res.status(500).text('Something went wrong.')
             }
         } else {
             for (const key in body) {
