@@ -5,7 +5,6 @@ const incorrectEntry = require('../services/incorrectEntry')
 const getRefArray = require('../services/getRefArray')
 
 function get(res, parts) {
-
     const file = getFileName(parts);
 
     fs.readFile(file, (error, data) => {
