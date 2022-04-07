@@ -3,34 +3,29 @@ const path = require('path')
 
 const Response = require('./services/response')
 const Switcher = require('./services/switcher');
+const getURL = require('./services/getURL')
 
 http.createServer((req, res) => {
+
     res = new Response(res)
-    
-    const host = 'http' + '://' + req.headers.host + '/';
-    const url = () => {
-        try {
-            return new URL(req.url, host)
-        } catch (error) {
-            return error
-        }
-    };
-    if (url().code) {
-        return res.status(500).text()
-    }
-
-    const pathname = path.parse(path.join(__dirname, url().pathname))
-    
-    console.log(`${req.method}: ${pathname.base}`);
-
-    if (pathname.ext) {
-        console.log(path.join(__dirname, url().pathname))
-        return res.file(path.join(__dirname, url().pathname))
-    }
-
-    const parts = url().pathname.split('/').filter(Boolean)
-
     res.setHeader('Access-Control-Allow-Origin', '*')
+
+    const url = getURL(req)
+
+    if (url.code) {
+        return res.status(500).text('Something went wrong.')
+    }
+
+    const file = path.parse(path.join(__dirname, url.pathname))
+    file.path = path.join(file.dir, file.base)
+    
+    console.log(`${req.method}: ${url.pathname}`);
+
+    if (file.ext) {
+        return res.file(file)
+    }
+
+    const parts = url.pathname.split('/').filter(Boolean)
 
     Switcher.addObjective("OPTIONS", () => {
         const options = require('./controllers/options')
@@ -58,7 +53,7 @@ http.createServer((req, res) => {
     })
 
     if(!Switcher.switch(req.method)) {
-        res.status(405).text()
+        res.status(405).text("Something went wrong.")
     }
 
 }).listen(process.env.PORT || 8080, () => {
