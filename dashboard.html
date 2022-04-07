@@ -122,7 +122,7 @@
 
             const text = async () => {
                 if (log.headers.some(header => {
-                        return header.includes('content-type') && header.includes('application/json')
+                        return header.includes('content-type') && header.some(head => head.toLowerCase().indexOf('application/json') >= 0)
                     })) {
                     return formatJSON(JSON.stringify(await data.json()))
                 } else {
