@@ -1,54 +1,56 @@
 const fs = require('fs')
 
 class Response {
-    #headers = []
+    #res
     #status = 200
     #message = ""
+    #MIME = {
+        ".json" : "application/json",
+        ".html" : "text/html",
+        ".css" : "text/css",
+        ".txt" : "text/plain",
+    }
     constructor(res) {
-        this.res = res
+        this.#res = res
     }
     setHeader(key, value) {
-        this.#headers.push([key, value])
+        this.#res.setHeader(key, value)
+        return this
     }
     status(code) {
-        this.res.statusCode = code || this.#status
+        this.#res.statusCode = code || this.#status
         return this
     }
     message(message) {
-        this.res.statusMessage = message || this.#message
+        this.#res.statusMessage = message || this.#message
         return this
     }
     json(json) {
-        this.setHeader('Content-Type', 'application/json')
-        this.end(JSON.stringify(json || {"error":"Something went wrong."}))
+        this.#res.setHeader('Content-Type', this.#MIME[".json"])
+            this.end(JSON.stringify(json || ""))
     }
     text(text) {
-        this.setHeader('Content-Type', 'text/plain')
-        this.end(text || 'Something went wrong.')
+        this.#res.setHeader('Content-Type', this.#MIME[".txt"])
+            this.end(text || "")
     }
     html(html) {
-        this.setHeader('Content-Type', 'text/html')
-        this.end(html || 'Something went wrong.')
+        this.#res.setHeader('Content-Type', this.#MIME[".html"])
+            this.end(html || "")
     }
     file(file) {
-        fs.readFile(file, (error, data) => {
+        fs.readFile(file.path, (error, data) => {
             if (error) {
                 this.status(404).text(error.toString())
             } else {
+                if (this.#MIME[file.ext]) {
+                    this.#res.setHeader('Content-Type', this.#MIME[file.ext])
+                }
                 this.status(200).end(data)
             }
         })
     }
     end(data) {
-        this.configRes()
-        this.res.end(data)
-    }
-    configRes() {
-        this.#headers.forEach(head => {
-            const [key, value] = [...head]
-            this.res.setHeader(key, value)
-        })
+        this.#res.end(data || "")
     }
 }
-
 module.exports = Response
