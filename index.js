@@ -16,10 +16,9 @@ server.listen(8080, (req, res) => {
 
     const file = path.parse(path.join(__dirname, url.pathname))
     file.path = path.join(file.dir, file.base)
-
     console.log(`${req.method}: ${url.pathname}`);
 
-    if (file.ext) {
+    if (req.method === "GET" && file.ext) {
         return res.file(file)
     }
 
@@ -49,8 +48,25 @@ server.listen(8080, (req, res) => {
         const deletePost = require('./controllers/deletePost')
         deletePost(res, parts)
     })
-
     if (!switcher.switch(req.method)) {
         res.status(405).text("Something went wrong.")
     }
+})
+
+//TESTING
+
+function testGet(req, res, args) {
+    console.log("GET")
+    res.status(200).text("GETTING: " + args.join(", "))
+}
+server.get("test", testGet, "fruit", "apple")
+
+function testPost(req, res, args) {
+    console.log("POST")
+    res.status(200).text("POSTING: " + args.join(", "))
+}
+server.post("test", testPost, "fruit", "apple")
+
+server.get('/', (req, res) => {
+    res.status(200).text("ok")
 })
