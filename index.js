@@ -1,11 +1,6 @@
 const server = require('./services/server')
 
-/* server.listen(8080, (req, res) => {
-}) */
-
-server.listen(8080, (req, res) => {
-    
-})
+server.listen(8080)
 
 server.setHeader('Access-Control-Allow-Origin', '*')
 
