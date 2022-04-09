@@ -120,7 +120,7 @@ class Response {
         }
     }
     listen(port, callback) {
-        typeCheck(arguments, Number())
+        typeCheck(arguments, Number(), [Function, undefined])
         const http = require('http');
         const path = require('path')
         const getURL = require('./getURL')
@@ -137,7 +137,7 @@ class Response {
             req.parts = url.pathname.split("/").filter(Boolean)
             console.log(req.method, req.parts.length > 0 ? req.parts : "/")
 
-            if (Object.prototype.toString.call(callback) === Object.prototype.toString.call(Function)) {
+            if (callback) {
                 callback(req, this)
             }
 
