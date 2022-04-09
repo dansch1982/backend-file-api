@@ -6,9 +6,11 @@ const incorrectEntry = require('../services/incorrectEntry')
 const getRefArray = require('../services/getRefArray')
 const addDeepData = require('../services/addDeepData')
 
-function post(req, res, parts, put = false) {
+function post(req, res, args) {
+    
+    const [put] = args
 
-    const file = getFileName(parts);
+    const file = getFileName(req.parts);
 
     fs.readFile(file, async (err, data) => {
 
@@ -22,7 +24,7 @@ function post(req, res, parts, put = false) {
         }
         
         const object = JSON.parse(data)
-        const refArray = getRefArray(object, parts)
+        const refArray = getRefArray(object, req.parts)
 
         if (!refArray[refArray.length - 1]) {
             return res.status(400).text("Incorrect path.")
@@ -31,7 +33,7 @@ function post(req, res, parts, put = false) {
         
         if (typeof body !== "object" || typeof refArray[refArray.length-1] !== "object") {
             try {
-                refArray[refArray.length-2][parts[parts.length - 1]] = body
+                refArray[refArray.length-2][req.parts[req.parts.length - 1]] = body
             } catch (error) {
                 return res.status(500).text('Something went wrong.')
             }
@@ -52,7 +54,7 @@ function post(req, res, parts, put = false) {
                 } else {
                     const response = { "before": before }
                     try {
-                        response["after"] = refArray[refArray.length-2][parts[parts.length - 1]]
+                        response["after"] = refArray[refArray.length-2][req.parts[req.parts.length - 1]]
                     } catch (error) {
                         response["after"] = object
                     }
