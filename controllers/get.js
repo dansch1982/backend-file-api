@@ -4,8 +4,8 @@ const getFileName = require('../services/getFileName')
 const incorrectEntry = require('../services/incorrectEntry')
 const getRefArray = require('../services/getRefArray')
 
-function get(res, parts) {
-    const file = getFileName(parts);
+function get(req, res) {
+    const file = getFileName(req.parts);
 
     fs.readFile(file, (error, data) => {
 
@@ -16,7 +16,7 @@ function get(res, parts) {
         } else {
 
             const object = JSON.parse(data)
-            const refArray = getRefArray(object, parts)
+            const refArray = getRefArray(object, req.parts)
             if (refArray[refArray.length - 1]) {
                 res.status(200).json(refArray[refArray.length - 1])
             } else {
