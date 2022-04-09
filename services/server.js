@@ -1,68 +1,84 @@
+const typeCheck = require('./typeCheck')
+
 class Response {
     #res
     #req
-    #public = ""
+    #headers = {}
     #status = 200
     #message = ""
+    #public = ""
     #mimeTypes = {
         "application/json": [".json"],
         "text/html": [".htm", ".html"],
         "text/css": [".css"],
         "text/plain": ".txt",
         "image/jpeg": [".jpeg", ".jpg"]
-    }
-    #methods = {
-        "GET" : [],
-        "POST" : []
-    }
+    } 
+    #methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     constructor() {
-        const object = {}
+        const mimeTypes = {}
         for (const key in this.#mimeTypes) {
             const elements = this.#mimeTypes[key];
             if (Array.isArray(elements)) {
                 elements.forEach(element => {
-                    object[element] = key
+                    mimeTypes[element] = key
                 });
             } else {
-                object[elements] = key
+                mimeTypes[elements] = key
             }
         }
-        this.#mimeTypes = object
+        this.#mimeTypes = mimeTypes
+
+        const methods = {}
+        for (const method of this.#methods) {
+            methods[method] = {
+                "URIs": [],
+                "default" : {}
+            }
+            this[method.toLowerCase()] = (uri, func, ...args) => {
+                this.#addURI(method, uri, func, ...args)
+            }
+        }
+        this.#methods = methods
     }
-    get(objective, func, ...args) {
-        this.#addObjective("GET", objective, func, ...args)
+    public(folder) {
+        typeCheck(arguments, "")
+        this.#public = folder
     }
-    post(objective, func, ...args) {
-        this.#addObjective("POST", objective, func, ...args)
+    default(method, func, ...args) {
+        typeCheck(arguments, String(), Function)
+        method = method.toUpperCase()
+        this.#methods[method]["default"].function = func
+        this.#methods[method]["default"].args = args
     }
-    #addObjective(method, objective, func, ...args) {
-        this.#methods[method][objective] = {
+    #addURI(method, uri, func, ...args) {
+        typeCheck(arguments, String(), String(), Function)
+        this.#methods[method]["URIs"][uri] = {
             "function": func,
             "args" : args
         }
     }
-    run(method, objective) {
+    run(method, uri) {
         try {
-            objective = this.#methods[method][objective]
-            objective.function(this.#req, this, objective.args)
+            uri = this.#methods[method]["URIs"][uri] || this.#methods[method]["default"]
+            uri.function(this.#req, this, uri.args)
         } catch (error) {
-            console.log(error)
-            this.status(404).text("Something went wrong.")
+            this.status(404).text("404")
         }
     }
     getMimeType(ext) {
         return this.#mimeTypes[ext] || "application/octet-stream"
     }
     setHeader(key, value) {
-        this.#res.setHeader(key, value)
+        this.#headers[key] = value
         return this
     }
     status(code) {
-        this.#res.statusCode = code || this.#status
+        this.#status = code
         return this
     }
     message(message) {
-        this.#res.statusMessage = message || this.#message
+        this.#message = message
         return this
     }
     json(json) {
@@ -89,7 +105,15 @@ class Response {
         })
     }
     end(data) {
+        this.configRes()
         this.#res.end(data || "")
+    }
+    configRes() {
+        this.#res.statusCode = this.#status
+        this.#res.statusMessage = this.#message
+        for (const [key, value] of Object.entries(this.#headers)) {
+            this.#res.setHeader(key, value)
+        }
     }
     listen(port, callback) {
         const http = require('http');
@@ -101,7 +125,7 @@ class Response {
             
             //testing
 
-            /* const url = getURL(req)
+            const url = getURL(req)
 
             if (url.code) {
                 return res.status(500).text('Something went wrong.')
@@ -116,9 +140,9 @@ class Response {
 
             const exp = `(${"/"})`
             const regexp = new RegExp(exp, "g")
-            const parts = url.pathname.split(regexp).filter(Boolean)
-            console.log(parts)
-            return this.run(req.method, parts[1] || parts[0]) */
+            req.parts = url.pathname.split(regexp).filter(Boolean)
+            console.log(req.parts)
+            return this.run(req.method, req.parts[1] || req.parts[0])
 
             //end test
 
