@@ -4,13 +4,12 @@ const getFileName = require('../services/getFileName')
 const incorrectEntry = require('../services/incorrectEntry')
 const getRefArray = require('../services/getRefArray')
 
-function deletePost(res, parts) {
+function deletePost(req, res) {
+    const file = getFileName(req.parts);
 
-    const file = getFileName(parts);
-
-    if (parts.length <= 0) {
+    if (req.parts.length <= 0) {
         return incorrectEntry(res)
-    } else if (parts.length <= 1) {
+    } else if (req.parts.length <= 1) {
         return res.status(403).text("Can't delete an entry point.")
     }
 
@@ -23,12 +22,12 @@ function deletePost(res, parts) {
         } else {
 
             const object = JSON.parse(data)
-            const refArray = getRefArray(object, parts)
+            const refArray = getRefArray(object, req.parts)
             if (!refArray[refArray.length - 1]) {
                 return res.status(404).text("No data.")
             }
 
-            delete refArray[refArray.length - 2][parts[parts.length - 1]]
+            delete refArray[refArray.length - 2][req.parts[req.parts.length - 1]]
 
             fs.writeFile(file, JSON.stringify(object), (error) => {
                 if (error) {
