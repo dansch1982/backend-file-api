@@ -128,26 +128,27 @@ class Response {
             this.#req = req
             this.#res = res
             
-            const url = getURL(req)
+            req.url = getURL(req)
             
-            if (url.code) {
+            if (req.url.code) {
                 return res.status(500).text('Something went wrong.')
             }
             
-            req.parts = url.pathname.split("/").filter(Boolean)
+            req.parts = req.url.pathname.split("/").filter(Boolean)
+            
             console.log(req.method, req.parts.length > 0 ? req.parts : "/")
 
             if (callback) {
                 callback(req, this)
             }
 
-            const file = path.parse(path.join('.', this.#static || "", url.pathname))
+            const file = path.parse(path.join('.', this.#static || "", req.url.pathname))
             
             if (req.method === "GET" && file.ext) {
                 file.path = path.join(file.dir, file.base)
                 return this.file(file)
             }
-            
+            console.log(req)
             this.run(req.method, req.parts[0] || "/")
 
         }).listen(process.env.PORT || port, () => {
