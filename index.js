@@ -54,15 +54,17 @@ server.listen(8080, (req, res) => {
 })
 
 //TESTING
+const apple = "apple"
+const banana = "banana"
+
+server.setHeader('Access-Control-Allow-Origin', '*')
 
 function testGet(req, res, args) {
-    console.log("GET")
     res.status(200).text("GETTING: " + args.join(", "))
 }
-server.get("test", testGet, "fruit", "apple")
+server.get(apple, testGet, "fruit", "apple")
 
 function testPost(req, res, args) {
-    console.log("POST")
     res.status(200).text("POSTING: " + args.join(", "))
 }
 server.post("test", testPost, "fruit", "apple")
@@ -70,3 +72,25 @@ server.post("test", testPost, "fruit", "apple")
 server.get('/', (req, res) => {
     res.status(200).text("ok")
 })
+server.get('test', (req, res) => {
+    server.setHeader("fruit", "banana")
+    res.status(201).json({"test" : "value"})
+})
+
+server.post('/', (req, res) => {
+    res.status(200).text("ok")
+})
+
+server.delete('/', (req, res) => {
+    res.status(200).text("delete")
+})
+
+server.default("get", (req, res) => {
+    res.status(200).text("Default GET")
+})
+
+server.default("POST", (req, res, args) => {
+    res.status(200).text("Default POST with: " + args.join(", "))
+}, apple, banana)
+
+server.public("public")
