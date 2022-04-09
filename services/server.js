@@ -6,7 +6,7 @@ class Response {
     #headers = {}
     #status = 200
     #message = ""
-    #public = ""
+    #static = ""
     #mimeTypes = {
         "application/json": [".json"],
         "text/html": [".htm", ".html"],
@@ -41,9 +41,9 @@ class Response {
         }
         this.#methods = methods
     }
-    public(folder) {
+    static(folder) {
         typeCheck(arguments, "")
-        this.#public = folder
+        this.#static = folder
     }
     default(method, func, ...args) {
         typeCheck(arguments, String(), Function)
@@ -63,7 +63,7 @@ class Response {
             uri = this.#methods[method]["URIs"][uri] || this.#methods[method]["default"]
             uri.function(this.#req, this, uri.args)
         } catch (error) {
-            this.status(404).text("404")
+            this.status(404).text("Page not found.")
         }
     }
     getMimeType(ext) {
@@ -83,21 +83,25 @@ class Response {
     }
     json(json) {
         this.#res.setHeader('Content-Type', this.getMimeType(".json"))
-            this.end(JSON.stringify(json || ""))
+            this.end(JSON.stringify(json || "empty"))
     }
     text(text) {
         this.#res.setHeader('Content-Type', this.getMimeType(".txt"))
-            this.end(text || "")
+        const type = Object.prototype.toString.call(text)
+        if (text && type !== "object String") {
+            text = type === Object.prototype.toString.call({}) ? JSON.stringify(text) : text.toString()
+        }
+        this.end(text || "empty")
     }
     html(html) {
         this.#res.setHeader('Content-Type', this.getMimeType(".html"))
-            this.end(html || "")
+            this.end(html || "empty")
     }
     file(file) {
         const fs = require('fs')
         fs.readFile(file.path, (error, data) => {
             if (error) {
-                this.status(404).text(error.toString())
+                this.status(404).text("File not found.")
             } else {
                 this.#res.setHeader('Content-Type', this.getMimeType(file.ext))
                 this.status(200).end(data)
@@ -116,6 +120,7 @@ class Response {
         }
     }
     listen(port, callback) {
+        typeCheck(arguments, Number())
         const http = require('http');
         const path = require('path')
         const getURL = require('./getURL')
@@ -123,30 +128,28 @@ class Response {
             this.#req = req
             this.#res = res
             
-            //testing
-
             const url = getURL(req)
-
+            
             if (url.code) {
                 return res.status(500).text('Something went wrong.')
             }
+            
+            req.parts = url.pathname.split("/").filter(Boolean)
+            console.log(req.method, req.parts.length > 0 ? req.parts : "/")
 
-            const file = path.parse(path.join('.', this.#public || "", url.pathname))
-            file.path = path.join(file.dir, file.base)
-
-            if (req.method === "GET" && file.ext) {
-                return this.file(file)
+            if (Object.prototype.toString.call(callback) === Object.prototype.toString.call(Function)) {
+                callback(req, this)
             }
 
-            const exp = `(${"/"})`
-            const regexp = new RegExp(exp, "g")
-            req.parts = url.pathname.split(regexp).filter(Boolean)
-            console.log(req.parts)
-            return this.run(req.method, req.parts[1] || req.parts[0])
+            const file = path.parse(path.join('.', this.#static || "", url.pathname))
+            
+            if (req.method === "GET" && file.ext) {
+                file.path = path.join(file.dir, file.base)
+                return this.file(file)
+            }
+            
+            this.run(req.method, req.parts[0] || "/")
 
-            //end test
-
-            callback(req, this)
         }).listen(process.env.PORT || port, () => {
             console.log("Server running on port:", process.env.PORT || port)
         });
