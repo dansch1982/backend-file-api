@@ -1,8 +1,13 @@
-const server = require('./services/server')
+const Server = require('./services/server')
+
+const server = new Server({
+    "methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "headers" : {
+        'Access-Control-Allow-Origin': '*'
+    }
+})
 
 server.listen(8080)
-
-server.setHeader('Access-Control-Allow-Origin', '*')
 
 server.static("public")
 
@@ -17,5 +22,8 @@ server.default('put', post, true)
 const deletePost = require('./controllers/deletePost')
 server.default('delete', deletePost)
 
-const options = require('./controllers/options')
-server.default('options', options)
+server.default('options', (req, res) => {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+    res.setHeader('Content-Type', 'application/json')
+    res.status(200).end()
+})
