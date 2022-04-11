@@ -8,6 +8,7 @@ class Server {
     #status = 200
     #message = ""
     #static = ""
+    #methods
     #mimeTypes = {
         "application/json": [".json"],
         "text/html": [".htm", ".html"],
@@ -15,7 +16,6 @@ class Server {
         "text/plain": ".txt",
         "image/jpeg": [".jpeg", ".jpg"]
     } 
-    #methods
     constructor(settings) {
         typeCheck(arguments, [{}, undefined])
 
@@ -124,9 +124,6 @@ class Server {
                 this.status(200).end(data)
             }
         })
-    }
-    res() {
-        return this.#res
     }
     end(data) {
         this.configRes()
