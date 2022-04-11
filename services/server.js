@@ -1,9 +1,10 @@
 const typeCheck = require('./typeCheck')
 
-class Response {
+class Server {
     #res
     #req
-    #headers = {}
+    #defaultHeaders = []
+    #headers = []
     #status = 200
     #message = ""
     #static = ""
@@ -14,8 +15,24 @@ class Response {
         "text/plain": ".txt",
         "image/jpeg": [".jpeg", ".jpg"]
     } 
-    #methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    constructor() {
+    #methods
+    constructor(settings) {
+        typeCheck(arguments, [{}, undefined])
+
+        for (const [key, values] of Object.entries(settings)) {
+            switch (key.toLowerCase()) {
+                case "methods":
+                    this.#methods = values.replace(/\s/g,"").toUpperCase().split(",")
+                    break;
+                case "headers":
+                    for (const key in values) {
+                        this.#defaultHeaders.push([key,values[key]])
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
         const mimeTypes = {}
         for (const key in this.#mimeTypes) {
             const elements = this.#mimeTypes[key];
@@ -46,7 +63,7 @@ class Response {
         this.#static = folder
     }
     default(method, func, ...args) {
-        typeCheck(arguments, String(), Function)
+        typeCheck(arguments, String(), [Function])
         method = method.toUpperCase()
         this.#methods[method]["default"].function = func
         this.#methods[method]["default"].args = args
@@ -70,7 +87,7 @@ class Response {
         return this.#mimeTypes[ext] || "application/octet-stream"
     }
     setHeader(key, value) {
-        this.#headers[key] = value
+        this.#headers.push([key, value])
         return this
     }
     status(code) {
@@ -82,11 +99,11 @@ class Response {
         return this
     }
     json(json) {
-        this.#res.setHeader('Content-Type', this.getMimeType(".json"))
-            this.end(JSON.stringify(json || "empty"))
+        this.setHeader('Content-Type', this.getMimeType(".json"))
+        this.end(JSON.stringify(json || "empty"))
     }
     text(text) {
-        this.#res.setHeader('Content-Type', this.getMimeType(".txt"))
+        this.setHeader('Content-Type', this.getMimeType(".txt"))
         const type = Object.prototype.toString.call(text)
         if (text && type !== "object String") {
             text = type === Object.prototype.toString.call({}) ? JSON.stringify(text) : text.toString()
@@ -94,7 +111,7 @@ class Response {
         this.end(text || "empty")
     }
     html(html) {
-        this.#res.setHeader('Content-Type', this.getMimeType(".html"))
+        this.setHeader('Content-Type', this.getMimeType(".html"))
             this.end(html || "empty")
     }
     file(file) {
@@ -103,10 +120,13 @@ class Response {
             if (error) {
                 this.status(404).text("File not found.")
             } else {
-                this.#res.setHeader('Content-Type', this.getMimeType(file.ext))
+                this.setHeader('Content-Type', this.getMimeType(file.ext))
                 this.status(200).end(data)
             }
         })
+    }
+    res() {
+        return this.#res
     }
     end(data) {
         this.configRes()
@@ -115,7 +135,12 @@ class Response {
     configRes() {
         this.#res.statusCode = this.#status
         this.#res.statusMessage = this.#message
-        for (const [key, value] of Object.entries(this.#headers)) {
+        for (const header of this.#defaultHeaders) {
+            const [key, value] = header
+            this.#res.setHeader(key, value)
+        }
+        for (const header of this.#headers) {
+            const [key, value] = this.#headers.shift()
             this.#res.setHeader(key, value)
         }
     }
@@ -148,7 +173,6 @@ class Response {
                 file.path = path.join(file.dir, file.base)
                 return this.file(file)
             }
-            console.log(req)
             this.run(req.method, req.parts[0] || "/")
 
         }).listen(process.env.PORT || port, () => {
@@ -156,4 +180,4 @@ class Response {
         });
     }
 }
-module.exports = new Response()
+module.exports = Server
