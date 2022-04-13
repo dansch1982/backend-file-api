@@ -24,19 +24,24 @@ function typeCheck(args, ...expected) {
             return true
         }
     } else {
-        expected = expected[0]
-        console.log(expected)
+        expected.forEach((element, index) => {
+            if (Array.isArray(element) && element.length > 0) {
+                expected[index] = element
+                console.log(expected[index])
+            } else {
+                expected = getType(element)
+            }
+        });
         const arg = getType(args)
         received.push(getType(arg))
-        if ((expected.length > 1 && getType(args) !== getType(expected)) || (expected.length > 0 && !expected.some(type => {return  getType(type) === getType(args)}))) {
-            //return throwError()
-            console.log(false)
-        } else console.log(true)
+        console.log("received", arg,"-", "expected", expected)
     }
 
     function throwError() {
+        console.log(expected)
         let expectedString = "";
         expected.forEach(item => {
+            //console.log(`item: ${item}`)
             expectedString += Array.isArray(item) ? `[${item.join('|')}], ` : `${item}, `
         })
         expectedString = expectedString.slice(0, -2)
@@ -49,8 +54,8 @@ function typeCheck(args, ...expected) {
 }
 module.exports = typeCheck
 
-typeCheck([],[])        // true
-typeCheck([],[[]])      // true
-typeCheck([],["", []])  //true
-typeCheck([],[""])      //false
-typeCheck([],"")      //false
+typeCheck([],[])        // false
+typeCheck([],[[]])      // false
+typeCheck([],["", []])  //false
+typeCheck([],[""])      //true
+typeCheck([],"")      //true
