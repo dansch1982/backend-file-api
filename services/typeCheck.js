@@ -1,61 +1,16 @@
-function typeCheck(args, ...expected) {
-    const received = []
-    if (getType(args) === "arguments") {
-        if (!args || !expected.every((arg, index) => {
-
-                const value = Object.values(args)[index]
-                received[index] = getType(value)
-
-                if (Array.isArray(arg) && arg.length > 0) {
-                    arg.forEach((item, index) => {
-                        arg[index] = getType(item)
-                    })
-                    if (arg.indexOf(received[index]) >= 0) {
-                        expected[index] = received[index]
-                    }
-                } else {
-                    expected[index] = getType(arg)
-                }
-
-                return received[index] === expected[index]
-            })) {
-                throwError()
-        } else {
-            return true
-        }
-    } else {
-        expected.forEach((element, index) => {
-            if (Array.isArray(element) && element.length > 0) {
-                expected[index] = element
-                console.log(expected[index])
-            } else {
-                expected = getType(element)
-            }
-        });
-        const arg = getType(args)
-        received.push(getType(arg))
-        console.log("received", arg,"-", "expected", expected)
-    }
-
-    function throwError() {
-        console.log(expected)
-        let expectedString = "";
-        expected.forEach(item => {
-            //console.log(`item: ${item}`)
-            expectedString += Array.isArray(item) ? `[${item.join('|')}], ` : `${item}, `
-        })
-        expectedString = expectedString.slice(0, -2)
-        throw new TypeError(`Expected ${expectedString}. Received ${received.join(', ')}.`);
-    }
-
-    function getType(obj) {
-        return Object.prototype.toString.call(obj).match(/\s([a-z|A-Z]+)/)[1].toLowerCase();
-    }
+function typeCheck(received, ...expected) {
+    if (getType(received) === "arguments") { received = Object.values(received) }
+    else { received = [received] }
+    expected.forEach((item, index) => {
+        convertType(received[index], index, received)
+        if (Array.isArray(item) && item.length) { item.forEach(convertType) }
+        else { expected[index] = getType(item) }
+    })
+    if(!expected.every((item, index) => { return (Array.isArray(item) && item.includes(received[index]) || item === received[index]) })) {
+        expected.forEach(items => { this.expectedString += (Array.isArray(items) && items.length > 1 ? `[${items.join("|")}]` : items) + ", " })
+        throw new TypeError(`Expected ${this.expectedString.slice(getType(undefined).length, -2)}. Received ${received.join(', ')}.`)
+    } 
+    function convertType(item, index, array) { array[index] = getType(item) }
+    function getType(obj) { return {}.toString.call(obj).match(/\s([a-z|A-Z]+)/)[1].toLowerCase() }
 }
 module.exports = typeCheck
-
-typeCheck([],[])        // false
-typeCheck([],[[]])      // false
-typeCheck([],["", []])  //false
-typeCheck([],[""])      //true
-typeCheck([],"")      //true
