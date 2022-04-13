@@ -14,6 +14,10 @@ server.static("public")
 const get = require('./controllers/get')
 server.default('get', get)
 
+server.get('dashboard', (req, res) => {
+    res.status(302).setHeader('Location', 'dashboard.html').end()
+})
+
 const post = require('./controllers/post')
 server.default('post', post)
 
