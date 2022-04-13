@@ -24,9 +24,14 @@ function typeCheck(args, ...expected) {
             return true
         }
     } else {
-        //console.log(getType(args))
-        [expected] = expected
-        console.log(expected.length)
+        expected = expected[0]
+        console.log(expected)
+        const arg = getType(args)
+        received.push(getType(arg))
+        if ((expected.length > 1 && getType(args) !== getType(expected)) || (expected.length > 0 && !expected.some(type => {return  getType(type) === getType(args)}))) {
+            //return throwError()
+            console.log(false)
+        } else console.log(true)
     }
 
     function throwError() {
@@ -38,10 +43,14 @@ function typeCheck(args, ...expected) {
         throw new TypeError(`Expected ${expectedString}. Received ${received.join(', ')}.`);
     }
 
-    function getType(item) {
-        return Object.prototype.toString.call(item).replace(/^\[object |\]$/g, '').toLowerCase()
+    function getType(obj) {
+        return Object.prototype.toString.call(obj).match(/\s([a-z|A-Z]+)/)[1].toLowerCase();
     }
 }
 module.exports = typeCheck
 
-typeCheck([],[""])
+typeCheck([],[])        // true
+typeCheck([],[[]])      // true
+typeCheck([],["", []])  //true
+typeCheck([],[""])      //false
+typeCheck([],"")      //false
