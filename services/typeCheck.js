@@ -11,6 +11,6 @@ function typeCheck(received, ...expected) {
         throw new TypeError(`Expected ${this.expectedString.slice(getType(undefined).length, -2)}. Received ${received.join(', ')}.`)
     } 
     function convertType(item, index, array) { array[index] = getType(item) }
-    function getType(obj) { return {}.toString.call(obj).match(/\s([a-z|A-Z]+)/)[1].toLowerCase() }
+    function getType(obj) { return Object.prototype.toString.call(obj).match(/\s([a-z|A-Z]+)/)[1].toLowerCase() }
 }
 module.exports = typeCheck
