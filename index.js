@@ -28,6 +28,6 @@ server.default('delete', deletePost)
 
 server.default('options', (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    res.setHeader('Content-Type', 'application/json')
-    res.status(200).end()
+    .setHeader('Content-Type', 'application/json')
+    .status(200).end()
 })
